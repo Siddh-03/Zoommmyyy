@@ -3,7 +3,7 @@ import { Server } from "socket.io";
 export const connectToSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: "*", 
+      origin: "https://zoommmyyy.onrender.com", 
       methods: ["GET", "POST"],
     },
   });
@@ -28,6 +28,9 @@ export const connectToSocket = (server) => {
 
       console.log(`Sending 'all-users' to ${socket.id} with:`, otherClients);
       socket.emit("all-users", otherClients);
+
+      console.log(`Sending 'user-joined' to room ${roomId} for:`, socket.id);
+      socket.to(roomId).emit("user-joined", socket.id);
     });
 
     socket.on("signal", (toId, message) => {
@@ -41,7 +44,6 @@ export const connectToSocket = (server) => {
 
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${socket.id}`);
-      
       io.emit("user-left", socket.id);
     });
   });

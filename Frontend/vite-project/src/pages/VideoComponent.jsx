@@ -121,36 +121,40 @@ export default function VideoComponent() {
 
   const getMessageFromServer = (fromId, message) => {
     var signal = JSON.parse(message);
-    if (fromId !== socketIdRef.current) {
-      if (signal.sdp) {
-        connections[fromId]
-          .setRemoteDescription(new RTCSessionDescription(signal.sdp))
-          .then(() => {
-            if (signal.sdp.type === "offer") {
-              connections[fromId]
-                .createAnswer()
-                .then((description) => {
-                  return connections[fromId].setLocalDescription(description);
-                })
-                .then(() => {
-                  socketRef.current.emit(
-                    "signal",
-                    fromId,
-                    JSON.stringify({
-                      sdp: connections[fromId].localDescription,
-                    })
-                  );
-                })
-                .catch((e) => console.log("Error creating answer:", e));
-            }
-          })
-          .catch((e) => console.log("Error setting remote description:", e));
+    if (connections[fromId]) {
+      if (fromId !== socketIdRef.current) {
+        if (signal.sdp) {
+          connections[fromId]
+            .setRemoteDescription(new RTCSessionDescription(signal.sdp))
+            .then(() => {
+              if (signal.sdp.type === "offer") {
+                connections[fromId]
+                  .createAnswer()
+                  .then((description) => {
+                    return connections[fromId].setLocalDescription(description);
+                  })
+                  .then(() => {
+                    socketRef.current.emit(
+                      "signal",
+                      fromId,
+                      JSON.stringify({
+                        sdp: connections[fromId].localDescription,
+                      })
+                    );
+                  })
+                  .catch((e) => console.log("Error creating answer:", e));
+              }
+            })
+            .catch((e) => console.log("Error setting remote description:", e));
+        }
+        if (signal.ice) {
+          connections[fromId]
+            .addIceCandidate(new RTCIceCandidate(signal.ice))
+            .catch((e) => console.log("Error adding ICE candidate:", e));
+        }
       }
-      if (signal.ice) {
-        connections[fromId]
-          .addIceCandidate(new RTCIceCandidate(signal.ice))
-          .catch((e) => console.log("Error adding ICE candidate:", e));
-      }
+    } else {
+      console.warn(`Received signal from unknown peer: ${fromId}`);
     }
   };
 
@@ -213,6 +217,7 @@ export default function VideoComponent() {
 
   const connectToSocketServer = () => {
     socketRef.current = io.connect(server_url);
+
     socketRef.current.on("signal", getMessageFromServer);
     socketRef.current.on("chat-message", addMessage);
 
@@ -223,6 +228,7 @@ export default function VideoComponent() {
     });
 
     socketRef.current.on("user-left", (id) => {
+      console.log("User left:", id);
       setVideos((prevVideos) =>
         prevVideos.filter((video) => video.socketId !== id)
       );
@@ -250,12 +256,14 @@ export default function VideoComponent() {
     setVideoOn(true);
     setAudioOn(true);
     connectToSocketServer();
-    try {
-      addToHistory(url);
-      console.log("Meeting added to history:", url);
-    } catch (error) {
-      console.error("Failed to add meeting to history:", error);
-    }
+
+    addToHistory(url)
+      .then(() => {
+        console.log("Meeting added to history:", url);
+      })
+      .catch((error) => {
+        console.error("Failed to add meeting to history:", error);
+      });
   };
 
   const handleVideo = () => setVideoOn(!videoOn);

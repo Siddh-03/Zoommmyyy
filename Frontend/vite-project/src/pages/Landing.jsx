@@ -11,28 +11,31 @@ export default function Landing() {
             <h2>Zoommmyyy</h2>
           </div>
           <div className="navList">
-            <p
+            <a
+              style={{ textDecoration: "none", color: "white" }}
               onClick={() => {
                 router.push("/sid123");
               }}
             >
               Join as guest
-            </p>
-            <p
+            </a>
+            <a
               onClick={() => {
                 router.push("/auth");
               }}
+              style={{ textDecoration: "none", color: "white" }}
             >
               Register
-            </p>
+            </a>
             <div role="button">
-              <p
+              <a
+                style={{ textDecoration: "none", color: "white" }}
                 onClick={() => {
                   router.push("/auth");
                 }}
               >
                 Login
-              </p>
+              </a>
             </div>
           </div>
         </nav>
