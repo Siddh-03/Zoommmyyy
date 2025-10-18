@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
@@ -18,9 +20,7 @@ app.set("port", process.env.PORT || 3000);
 
 const start = async () => {
   app.set("Zooom_db");
-  const connectionDb = await mongoose.connect(
-    "mongodb+srv://Zooom_db:siddharth@cluster0.netfize.mongodb.net/Zooom_db?retryWrites=true&w=majority&appName=Cluster0"
-  );
+  const connectionDb = await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/Zooom_db");
   console.log(`Database connected: ${connectionDb.connection.host}`);
   server.listen(app.get("port"), () => {
     console.log(`Server is running on port ${app.get("port")}`);
