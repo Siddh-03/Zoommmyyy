@@ -12,7 +12,11 @@ const app = express();
 const server = createServer(app);
 const io = connectToSocket(server);
 
-app.use(cors());
+const options = {
+  origin: 'https://zoommmyyy.onrender.com'
+};
+
+app.use(cors(options));
 app.use(express.json({ limit: "40kb" }));
 app.use(express.urlencoded({ extended: true }));
 
